@@ -27,8 +27,8 @@ app.get('/urls', (req, res) => {
 // add route for /urls/:id
 app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
-  const longURLs = urlDatabase[urlID];
-  const templateVars = { id: urlID, longURL: longURLs }
+  const originURL = urlDatabase[urlID];
+  const templateVars = { id: urlID, longURL: originURL }
   res.render('urls_show', templateVars);
 });
 
