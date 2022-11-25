@@ -18,9 +18,18 @@ const urlDatabase = {
 //   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
+// add route for /urls
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
   res.render('urls_index', templateVars);
+});
+
+// add route for /urls/:id
+app.get('/urls/:id', (req, res) => {
+  const urlID = req.params.id;
+  const longURLs = urlDatabase[urlID];
+  const templateVars = { id: urlID, longURL: longURLs }
+  res.render('urls_show', templateVars);
 });
 
 // app.get('/', (req, res) => {
