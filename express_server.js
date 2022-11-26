@@ -35,15 +35,19 @@ app.get('/urls/new', (req, res) => {
 
 // add a post request
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('OK');
+  const newID = generateRandomString();
+  const newURL = req.body.longURL;
+  urlDatabase[newID] = newURL;  
+  console.log(urlDatabase);
+  // res.render('urls_show', { id: newID, longURL: newURL });
+  return res.redirect(`/urls/${newID}`)
 });
 
 // add route for /urls/:id
 app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
   const originURL = urlDatabase[urlID];
-  const templateVars = { id: urlID, longURL: originURL }
+  const templateVars = { id: urlID, longURL: originURL };
   res.render('urls_show', templateVars);
 });
 
