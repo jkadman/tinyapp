@@ -43,6 +43,12 @@ app.post('/urls', (req, res) => {
   return res.redirect(`/urls/${newID}`)
 });
 
+app.get("/u/:id", (req, res) => {
+  const urlID = req.params.id
+  const longURL = urlDatabase[urlID]
+  res.redirect(longURL);
+});
+
 // add route for /urls/:id
 app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
