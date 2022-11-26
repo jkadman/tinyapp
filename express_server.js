@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 
 app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -19,9 +20,23 @@ const urlDatabase = {
 // });
 
 // add route for /urls
+
+// make data readable
+app.use(express.urlencoded({ extended: true }));
+
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase};
   res.render('urls_index', templateVars);
+});
+
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
+});
+
+// add a post request
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send('OK');
 });
 
 // add route for /urls/:id
@@ -37,6 +52,9 @@ app.get('/urls/:id', (req, res) => {
 //   res.render('urls_index', templateVars);
 // });
 
+const generateRandomString = function() {
+  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
+}
 
 
 app.listen(PORT, () => {
