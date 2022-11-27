@@ -30,15 +30,23 @@
         </thead>
         <tbody>
           <% for (let id in urls) { %>
-            <!-- add in delete form action-->
+            
             <tr>
               
               <td><%= id %></td>
               
               <td><%= urls[id] %></td>
-              
-              <td><form method="POST" action="/urls/9sm5xK/delete"></form>
-                <button type ="submit">Delete</button></td>
+              <!--b2xVn2-->
+              <td> 
+                <!-- add in delete form action-->
+                <!-- won't accept urlDatabase
+                Want it to accept urlID why won't it do this? -->
+                <form method="POST" action="/urls/<%= id %>/delete">
+                  <button type ="submit">Delete</button>
+                </form>
+                
+
+              </td>
 
             </tr>
             
