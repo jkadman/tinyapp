@@ -5,7 +5,7 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 
-const urlDatabase = {
+let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
@@ -43,17 +43,43 @@ app.post('/urls', (req, res) => {
   return res.redirect(`/urls/${newID}`)
 });
 
+// redirect to the longURL by clicking on the shortened one
 app.get("/u/:id", (req, res) => {
   const urlID = req.params.id
-  const longURL = urlDatabase[urlID]
+  const longURL = urlDatabase[urlID];
   res.redirect(longURL);
 });
 
+// add a delete request
 app.post('/urls/:id/delete', (req, res) => {
   const urlID = req.params.id;
   delete urlDatabase[urlID];
   res.redirect('/urls')
 })
+
+
+// Update request ////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+app.post('/urls/:id', (req, res) => {
+  
+  let urlID = req.params.id;
+  const longURL = urlDatabase[urlID];
+  const newURL = req.body.newURL
+
+  urlDatabase[urlID] = newURL
+  // console.log(urlDatabase)
+  
+  /*  -issues: can't enter new longURL while keeping the old one for editing
+      -can't return to the main page after submitting edited URL (when I try, the edit button doesn't move to the correct page)
+      - Think I have the client side good but the server side I am struggling with
+
+  */
+  res.redirect(`/urls`);
+  
+})
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 // add route for /urls/:id
 app.get('/urls/:id', (req, res) => {
@@ -61,6 +87,7 @@ app.get('/urls/:id', (req, res) => {
   const originURL = urlDatabase[urlID];
   const templateVars = { id: urlID, longURL: originURL };
   res.render('urls_show', templateVars);
+  // return res.redirect('/urls')
 });
 
 // app.get('/', (req, res) => {
