@@ -7,6 +7,20 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const generateRandomString = function() {
+  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
+}
+
+// a helper function to find user
+// how to find inputed user email when req doesn't work inside function
+
+const getUserByEmail = function(email, userObject) {
+  for (let user in userObject) {
+    if (email === userObject[user].email) {
+      return true;
+    }
+  }
+}
 
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -60,22 +74,26 @@ app.get('/register', (req, res) => {
 
 // register as a new user
 app.post('/register', (req, res) => {
-  // const templateVars = {
-  // username: req.cookies['username']
-  // };
+  userEmail = req.body.email;
+  userPassword = req.body.password;
+  if (!userEmail || !userPassword) {
+    return res.status(400).send('Please enter a valid username and password.');
+  } 
+  
+  if (getUserByEmail(userEmail, users)) {
+    return res.status(400).send('User already exists');
+  }
+
   const uniqueId = generateRandomString();
+  
   users[uniqueId] = {
     id: uniqueId, 
-    email: req.body.email, 
-    password: req.body.password
+    email: userEmail, 
+    password: userPassword
   };
-  
   res.cookie('user_id', uniqueId);
-
-  console.log(users[uniqueId])
-  console.log(users);
-
   res.redirect('urls');
+
 });
 
 // add a new URL to be shortened
@@ -147,9 +165,7 @@ app.get('/urls/:id', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-const generateRandomString = function() {
-  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
-}
+
 
 
 app.listen(PORT, () => {
