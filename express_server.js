@@ -11,12 +11,19 @@ const generateRandomString = function() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
 
-// a helper function to find user
-// how to find inputed user email when req doesn't work inside function
-
+// a helper function to find user by email
 const getUserByEmail = function(email, userObject) {
   for (let user in userObject) {
     if (email === userObject[user].email) {
+      return true;
+    }
+  }
+}
+
+// a helper function to find a users password
+const findPassword = function(password, userObject) {
+  for (let user in userObject) {
+    if (password === userObject[user].password) {
       return true;
     }
   }
@@ -47,7 +54,7 @@ app.use(express.urlencoded({ extended: true }));
 // add route for /urls
 app.get('/urls', (req, res) => {
   const templateVars = { 
-    username: req.cookies['user_id'],
+    user_id: req.cookies['user_id'],
     urls: urlDatabase,
     users: users
   };
@@ -57,7 +64,7 @@ app.get('/urls', (req, res) => {
 // for submitting a new url to be shortened
 app.get('/urls/new', (req, res) => {
   const templateVars = {
-    username: req.cookies['user_id'],
+    user_id: req.cookies['user_id'],
     users: users
   };
   res.render('urls_new', templateVars);
@@ -66,7 +73,7 @@ app.get('/urls/new', (req, res) => {
 // access the registration page
 app.get('/register', (req, res) => {
   const templateVars = {
-    username: req.cookies['user_id'],
+    user_id: req.cookies['user_id'],
     users: users
   };
   res.render('register', templateVars);
@@ -77,7 +84,7 @@ app.post('/register', (req, res) => {
   userEmail = req.body.email;
   userPassword = req.body.password;
   if (!userEmail || !userPassword) {
-    return res.status(400).send('Please enter a valid username and password.');
+    return res.status(400).send('Please enter a valid user_id and password.');
   } 
   
   if (getUserByEmail(userEmail, users)) {
@@ -96,6 +103,41 @@ app.post('/register', (req, res) => {
 
 });
 
+// login page
+app.get('/login', (req, res) => {
+  
+  templateVars = {
+    user_id: req.cookies['user_id'],
+    //userEmail: users[uniqueId].email
+  }
+  
+  res.render('login', templateVars)
+});
+
+app.post('/login', (req, res) => {
+  userEmail = req.body.email;
+  userPassword = req.body.password;
+  uniqueId = req.cookies['user_id']
+
+  if (!getUserByEmail(userEmail, users)) {
+    return res.status(403).send('no user by that email');
+  }
+  if (!findPassword(userPassword, users)) {
+    
+    return res.status(403).send('password not correct');
+  }
+  if (getUserByEmail(userEmail, users) === true && findPassword(userPassword, users) === true) {
+    res.cookie('user_id', uniqueId)
+    return res.redirect('urls')
+  }
+
+});
+
+// problems: logout page is going nowhere
+
+
+
+
 // add a new URL to be shortened
 app.post('/urls', (req, res) => {
   const newID = generateRandomString();
@@ -110,25 +152,17 @@ app.get("/u/:id", (req, res) => {
   const urlID = req.params.id
   const longURL = urlDatabase[urlID];
   templateVars = {
-    username: req.cookies["user_id"],
+    user_id: req.cookies["user_id"],
     users: users
   }
   res.redirect(longURL, templateVars);
 });
 
-// Login Route
-app.post('/login', (req, res) => {
-  res.cookie('user_id', uniqueId);
-  templateVars = {
-    users: users
-  };
-  return res.redirect('/urls')
-})
 
 // Logout Route
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  return res.redirect('/urls');
+  return res.redirect('urls');
 })
 
 
@@ -136,7 +170,7 @@ app.post('/logout', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   const urlID = req.params.id;
   delete urlDatabase[urlID];
-  res.redirect('/urls')
+  res.redirect('urls')
 })
 
 
@@ -149,7 +183,7 @@ app.post('/urls/:id', (req, res) => {
 
   urlDatabase[urlID] = newURL
   
-  res.redirect(`/urls`);
+  res.redirect(`urls`);
 });
 
 // add route for /urls/:id
@@ -157,7 +191,7 @@ app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
   const originURL = urlDatabase[urlID];
   const templateVars = { 
-    username: req.cookies["user_id"],
+    user_id: req.cookies["user_id"],
     id: urlID, 
     longURL: originURL,
     users: users
