@@ -146,7 +146,7 @@ app.post('/login', (req, res) => {
 
   // if both email and password are correct
   if (foundUser.email && foundUser.password) {
-    res.cookie('user_id', users[testUserID].id);
+    res.cookie('user_id', foundUser.id);
     return res.redirect('/urls');
   }
   
