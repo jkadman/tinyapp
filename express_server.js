@@ -49,39 +49,68 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/urls', (req, res) => {
   
   const user_id = req.cookies['user_id'];
-  userEmail = users[user_id].email
-  console.log(userEmail)
+
+  if (!user_id) {
+    const userEmail = users[user_id].email;
+    const templateVars = {
+      user_id: user_id,
+      urls: urlDatabase,
+      userEmail: userEmail
+    }
+  }
 
   const templateVars = {
     user_id: user_id,
     urls: urlDatabase,
-    userEmail: userEmail
-    // userEmail: users[user_id].email
   };
 
-  // console.log(templateVars)
+  
   
   res.render('urls_index', templateVars);
 });
 
 // for submitting a new url to be shortened
 app.get('/urls/new', (req, res) => {
-  const templateVars = {
-    user_id: req.cookies['user_id'],
+
+  const user_id = req.cookies['user_id'];
+
+  if (!user_id) {
     
-  };
-  res.render('urls_new', templateVars);
+    return res.redirect('/login');
+
+  }
+
+  const userEmail = users[user_id].email;
+    const templateVars = {
+      user_id: req.cookies['user_id'],
+      userEmail: userEmail
+    };
+
+    return res.render('urls_new', templateVars);
+  
+
+ 
 });
 
 // access the registration page
 app.get('/register', (req, res) => {
-  const userCookie = req.cookies['user_id'];
+  
+  const user_id = req.cookies['user_id'];
+
+  if (user_id) {
+    const userEmail = users[user_id].email;
+    const templateVars = {
+      user_id: user_id,
+      userEmail: userEmail
+    };
+
+    res.redirect('urls')
+  }
 
   const templateVars = {
-    user_id: userCookie,
-    
-    // userEmail: users[user_id].email
-  };
+    user_id: user_id,
+    };
+
   res.render('register', templateVars);
 });
 
@@ -119,8 +148,21 @@ app.post('/register', (req, res) => {
 // login page
 app.get('/login', (req, res) => {
 
+  const user_id = req.cookies['user_id'];
+
+  if (user_id) {
+    const userEmail = users[user_id].email;
+
+    const templateVars = {
+      user_id: user_id,
+      userEmail: userEmail
+    };
+
+    redirect('urls')
+  }
+
   const templateVars = {
-    user_id: req.cookies['user_id']
+    user_id: user_id,
   };
   
   res.render('login', templateVars);
@@ -146,7 +188,7 @@ app.post('/login', (req, res) => {
 
   // if both email and password are correct
   if (foundUser.email && foundUser.password) {
-    res.cookie('user_id', users[testUserID].id);
+    res.cookie('user_id', foundUser.id);
     return res.redirect('/urls');
   }
   
@@ -200,14 +242,25 @@ app.post('/urls/:id', (req, res) => {
 app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
   const originURL = urlDatabase[urlID];
-  userCookie = req.cookies["user_id"];
-  console.log(userCookie)
+  const user_id = req.cookies['user_id'];
+
+  if (user_id) {
+    const userEmail = users[user_id].email;
+
+    const templateVars = {
+      user_id: user_id,
+      userEmail: userEmail,
+      id: urlID,
+      longURL: originURL,
+    };
+  }
+
   const templateVars = {
-    user_id: userCookie,
+    user_id: user_id,
     id: urlID,
     longURL: originURL,
   };
-  res.render('urls_show', { templateVars });
+  res.render('urls_show', templateVars);
 });
 
 app.listen(PORT, () => {
