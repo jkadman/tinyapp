@@ -13,30 +13,35 @@ const generateRandomString = function() {
 
 // a helper function to find user by email
 const getUserByEmail = function(email, users) {
-  
   for (let user in users) {
-    
     if (email === users[user].email) {
       return users[user];
-      
     }
   }
 };
 
-let urlDatabase = {
+const findUrlByUserId = function(userId, database) {
+  for (let key in database) {
+    if (database[key].userID === userId) {
+      return database[key]
+    }
+  }
+}
+
+const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
 };
 
 // user object
 const users = {
-  Jack : {
-    id: 'Jack',
+  i9ov4r : {
+    id: 'i9ov4r',
     email: 'Jack@ham.ca',
     password: '5678'
   },
-  fred : {
-    id: 'fred',
+  k4l07f : {
+    id: 'k4l07f',
     email: 'fred@ham.ca',
     password: 'nert'
   }
@@ -220,7 +225,7 @@ app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[urlID];
   
   if (!longURL) {
-    res.status(400).send('Shot url does not exist');
+    res.status(400).send('Short url does not exist');
   }
 
   res.redirect(longURL);
