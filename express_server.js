@@ -30,12 +30,12 @@ let urlDatabase = {
 
 // user object
 const users = {
-  userId : {
+  Jack : {
     id: 'Jack',
     email: 'Jack@ham.ca',
     password: '5678'
   },
-  jkl : {
+  fred : {
     id: 'fred',
     email: 'fred@ham.ca',
     password: 'nert'
@@ -51,20 +51,20 @@ app.get('/urls', (req, res) => {
   const user_id = req.cookies['user_id'];
 
   if (!user_id) {
-    const userEmail = users[user_id].email;
-    const templateVars = {
-      user_id: user_id,
-      urls: urlDatabase,
-      userEmail: userEmail
-    }
+    res.redirect('/login')
+
+    
   }
 
-  const templateVars = {
-    user_id: user_id,
-    urls: urlDatabase,
-  };
+  const userEmail = users[user_id].email;
+  console.log(users)
+    const templateVars = {
+      user_id,
+      urls: urlDatabase,
+      userEmail
+    }
 
-  
+  console.log(urlDatabase)
   
   res.render('urls_index', templateVars);
 });
@@ -96,20 +96,23 @@ app.get('/urls/new', (req, res) => {
 app.get('/register', (req, res) => {
   
   const user_id = req.cookies['user_id'];
-
+  
   if (user_id) {
-    const userEmail = users[user_id].email;
+    res.redirect('/urls')
+    // return res.send("login to have access to the page")
+    
+
+    // res.redirect('urls')
+  } 
+
+  const userEmail = users[user_id]
+    console.log(userEmail)
     const templateVars = {
-      user_id: user_id,
-      userEmail: userEmail
+      userEmail
+      // user_id: user_id,
+      // userEmail: userEmail
     };
-
-    res.redirect('urls')
-  }
-
-  const templateVars = {
-    user_id: user_id,
-    };
+ 
 
   res.render('register', templateVars);
 });
@@ -148,22 +151,21 @@ app.post('/register', (req, res) => {
 // login page
 app.get('/login', (req, res) => {
 
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
 
-  if (user_id) {
-    const userEmail = users[user_id].email;
-
-    const templateVars = {
-      user_id: user_id,
-      userEmail: userEmail
-    };
-
-    redirect('urls')
+  if (req.cookies['user_id']) {
+    res.redirect('/urls')
+    return 
   }
 
+  // const userEmail = users[user_id].email;
+
   const templateVars = {
-    user_id: user_id,
+    // user_id: user_id,
+    userEmail: users[req.cookies['user_id']]
   };
+  console.log(templateVars)
+  // res.redirect('/urls')
   
   res.render('login', templateVars);
 });
@@ -196,18 +198,31 @@ app.post('/login', (req, res) => {
 
 // add a new URL to be shortened
 app.post('/urls', (req, res) => {
+  
+  const user_id = req.cookies['user_id'];
+
+  if (!user_id) {
+    return res.status(401).send('non registered users are not able to make new shortened URLs');
+  }
+
   const newID = generateRandomString();
   const newURL = req.body.longURL;
+  
   urlDatabase[newID] = newURL;
-  // res.render('urls_show', { id: newID, longURL: newURL });
+  
   return res.redirect(`/urls/${newID}`);
 });
 
 // redirect to the longURL by clicking on the shortened one
 app.get("/u/:id", (req, res) => {
+
   const urlID = req.params.id;
   const longURL = urlDatabase[urlID];
   
+  if (!longURL) {
+    res.status(400).send('Shot url does not exist');
+  }
+
   res.redirect(longURL);
 });
 
@@ -244,19 +259,16 @@ app.get('/urls/:id', (req, res) => {
   const originURL = urlDatabase[urlID];
   const user_id = req.cookies['user_id'];
 
-  if (user_id) {
-    const userEmail = users[user_id].email;
-
-    const templateVars = {
-      user_id: user_id,
-      userEmail: userEmail,
-      id: urlID,
-      longURL: originURL,
-    };
+  if (!user_id) {
+    res.send('Need to be logged in')
+    
   }
+
+  const userEmail = users[user_id].email;
 
   const templateVars = {
     user_id: user_id,
+    userEmail: userEmail,
     id: urlID,
     longURL: originURL,
   };
