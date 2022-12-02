@@ -16,7 +16,7 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <% if (!user_id) {%>
+        <% if (!userEmail) {%>
         <form method="GET" action="/login">
           <button type ="submit">login</button>
         </form>
@@ -27,7 +27,7 @@
           <style>
             h6 {text-align: center;}
             </style>
-          <h6>Hello <%= user_id %></h6>
+          <h6>Hello <%= userEmail %></h6>
          <form method="POST" action="/logout">
           <button type ="submit">logout</button>
         </form>
