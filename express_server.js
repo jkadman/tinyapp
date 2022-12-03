@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 const cookieParser = require('cookie-parser');
+const bcrypt = require("bcryptjs");
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
@@ -96,11 +97,8 @@ app.get('/register', (req, res) => {
   const user_id = req.cookies['user_id'];
   
   if (user_id) {
-    res.redirect('/urls')
-    // return res.send("login to have access to the page")
-    
+    return res.redirect('/urls')
 
-    // res.redirect('urls')
   } 
 
   const userEmail = users[user_id]
@@ -130,14 +128,19 @@ app.post('/register', (req, res) => {
       return res.status(400).send('User already exists');
     }
   } 
-
   const user_id = generateRandomString();
-  
+
+  const salt = bcrypt.genSaltSync(10);
+  const hashedPassword = bcrypt.hashSync(userPassword, salt);
+  console.log('hash:', hashedPassword)
+  // console.log('user Password:', userPassword)  
   users[user_id] = {
     id: user_id,
     email: userEmail,
-    password: userPassword
+    password: hashedPassword
   };
+
+  console.log('userhashed:', users[user_id].password)
 
   res.cookie('user_id', user_id);
   res.redirect('urls');
@@ -168,22 +171,21 @@ app.post('/login', (req, res) => {
 
   const foundUser = getUserByEmail(userEmail, users);
 
+  passwordMatch = bcrypt.compareSync(userPassword, foundUser.password);
+
   // if the email inputed doesn't exist
   if (!foundUser) {
     return res.status(403).send('no user by that email');
   }
 
   // if the password is wrong
-  if (foundUser.password !== userPassword) {
+  if (!passwordMatch) {
     return res.status(403).send('password not correct');
   }
 
-  // if both email and password are correct
-  if (foundUser.email && foundUser.password) {
-    res.cookie('user_id', foundUser.id);
-    return res.redirect('/urls');
-  }
-  
+  res.cookie('user_id', foundUser.id);
+  return res.redirect('/urls');
+
 });
 
 // for submitting a new url to be shortened
