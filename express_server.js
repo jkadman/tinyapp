@@ -23,14 +23,27 @@ const getUserByEmail = function(email, users) {
 const findUrlByUserId = function(userId, database) {
   for (let key in database) {
     if (database[key].userID === userId) {
-      return database[key]
+      return database
     }
   }
 }
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+// const urlsForUser = function(id) {
+//   let foundDb = findUrlByUserId(id, urlDatabase)
+//   if (id === foundDb.id) {
+//     return foundDb;
+//   }
+// }
+
+let urlDatabase = {
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID:  "i9ov4r"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: 'k4l07f'
+  }
 };
 
 // user object
@@ -56,45 +69,23 @@ app.get('/urls', (req, res) => {
   const user_id = req.cookies['user_id'];
 
   if (!user_id) {
-    res.redirect('/login')
-
-    
+    res.send('Must be logged in to access URLs')
   }
-
+  
   const userEmail = users[user_id].email;
-  console.log(users)
+
+  const userURL = findUrlByUserId(user_id, urlDatabase);
+  // if (user_id) {
+  // if (urlsForUser(user_id)) {
     const templateVars = {
       user_id,
-      urls: urlDatabase,
-      userEmail
+      urls: userURL,
+      userEmail,
     }
 
-  console.log(urlDatabase)
-  
-  res.render('urls_index', templateVars);
-});
-
-// for submitting a new url to be shortened
-app.get('/urls/new', (req, res) => {
-
-  const user_id = req.cookies['user_id'];
-
-  if (!user_id) {
-    
-    return res.redirect('/login');
-
-  }
-
-  const userEmail = users[user_id].email;
-    const templateVars = {
-      user_id: req.cookies['user_id'],
-      userEmail: userEmail
-    };
-
-    return res.render('urls_new', templateVars);
-  
-
- 
+    res.render('urls_index', templateVars);
+  // }
+  // }
 });
 
 // access the registration page
@@ -111,11 +102,9 @@ app.get('/register', (req, res) => {
   } 
 
   const userEmail = users[user_id]
-    console.log(userEmail)
+    
     const templateVars = {
       userEmail
-      // user_id: user_id,
-      // userEmail: userEmail
     };
  
 
@@ -156,24 +145,18 @@ app.post('/register', (req, res) => {
 // login page
 app.get('/login', (req, res) => {
 
-  // const user_id = req.cookies['user_id'];
-
   if (req.cookies['user_id']) {
     res.redirect('/urls')
     return 
   }
 
-  // const userEmail = users[user_id].email;
-
   const templateVars = {
-    // user_id: user_id,
     userEmail: users[req.cookies['user_id']]
   };
-  console.log(templateVars)
-  // res.redirect('/urls')
   
   res.render('login', templateVars);
 });
+
 
 // Login request
 app.post('/login', (req, res) => {
@@ -201,6 +184,27 @@ app.post('/login', (req, res) => {
   
 });
 
+// for submitting a new url to be shortened
+app.get('/urls/new', (req, res) => {
+
+  const user_id = req.cookies['user_id'];
+
+  if (!user_id) {
+    
+    return res.redirect('/login');
+
+  }
+
+  const userEmail = users[user_id].email;
+    const templateVars = {
+      user_id: req.cookies['user_id'],
+      userEmail: userEmail
+    };
+
+    return res.render('urls_new', templateVars);
+  
+});
+
 // add a new URL to be shortened
 app.post('/urls', (req, res) => {
   
@@ -213,7 +217,10 @@ app.post('/urls', (req, res) => {
   const newID = generateRandomString();
   const newURL = req.body.longURL;
   
-  urlDatabase[newID] = newURL;
+  urlDatabase[newID] = {
+    longURL: newURL,
+    userID: user_id
+  };
   
   return res.redirect(`/urls/${newID}`);
 });
@@ -222,7 +229,7 @@ app.post('/urls', (req, res) => {
 app.get("/u/:id", (req, res) => {
 
   const urlID = req.params.id;
-  const longURL = urlDatabase[urlID];
+  const longURL = urlDatabase[urlID].longURL;
   
   if (!longURL) {
     res.status(400).send('Short url does not exist');
@@ -243,8 +250,11 @@ app.post('/logout', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   const urlID = req.params.id;
   delete urlDatabase[urlID];
-  res.redirect('urls');
+  res.redirect('/urls');
 });
+
+
+// shows all links sometimes but other times it doesn't -- Maybe gone
 
 
 // Update Request
@@ -253,15 +263,16 @@ app.post('/urls/:id', (req, res) => {
   let urlID = req.params.id;
   const newURL = req.body.newURL;
 
-  urlDatabase[urlID] = newURL;
+  urlDatabase[urlID].longURL = newURL;
   
-  res.redirect(`urls`);
+  // without / throws an error that it cannot get and seeks out urls/:id/urls
+  res.redirect(`/urls`);
 });
 
 // add route for /urls/:id
 app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
-  const originURL = urlDatabase[urlID];
+  const originURL = urlDatabase[urlID].longURL;
   const user_id = req.cookies['user_id'];
 
   if (!user_id) {
