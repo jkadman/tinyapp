@@ -20,20 +20,37 @@ const getUserByEmail = function(email, users) {
   }
 };
 
-const findUrlByUserId = function(userId, database) {
-  for (let key in database) {
-    if (database[key].userID === userId) {
-      return database
-    }
-  }
-}
-
-// const urlsForUser = function(id) {
-//   let foundDb = findUrlByUserId(id, urlDatabase)
-//   if (id === foundDb.id) {
-//     return foundDb;
+// function that finds a Url
+// const findUrlByUserId = function(userId, database) {
+//   for (let key in database) {
+//     // if the userId inputed in the function matches the userID in the database, it will return the whole database.
+//     // Not what I want, I want it to return only the URL's associated with the ID
+//     //Just need to change value to database[key] but that will effect the rest of my code
+//     if (database[key].userID === userId) {
+//       return database[key]
+//     }
 //   }
 // }
+
+const databaseParser = function(database) {
+  for (let key in database) {
+    return database
+  }
+}
+// if the userId inputed in the function matches the userID in the database, it will return the whole database.
+    // Not what I want, I want it to return only the URL's associated with the ID
+    //Just need to change value to database[key] but that will effect the rest of my code
+
+// function for comparing logged in userID to the userID in the database
+const urlsForUser = function(id) {
+  let userURLs = {};
+  for (let key in urlDatabase) {
+    if (id === urlDatabase[key].userID) {
+      userURLs[key] = urlDatabase[key];
+    }
+  }
+  return userURLs;
+};
 
 let urlDatabase = {
   "b2xVn2": {
@@ -74,18 +91,24 @@ app.get('/urls', (req, res) => {
   
   const userEmail = users[user_id].email;
 
-  const userURL = findUrlByUserId(user_id, urlDatabase);
-  // if (user_id) {
-  // if (urlsForUser(user_id)) {
-    const templateVars = {
-      user_id,
-      urls: userURL,
-      userEmail,
-    }
+// if it is the userID, then the URL 
 
-    res.render('urls_index', templateVars);
-  // }
-  // }
+   const newDatabase = urlsForUser(user_id)
+   
+  
+      const templateVars = {
+        user_id,
+        urls: newDatabase,
+        userEmail,
+      }
+
+      console.log('newDatabase:', newDatabase)
+      console.log('templateVars:', templateVars)
+      res.render('urls_index', templateVars);
+    
+      
+  
+
 });
 
 // access the registration page
