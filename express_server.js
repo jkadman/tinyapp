@@ -20,26 +20,6 @@ const getUserByEmail = function(email, users) {
   }
 };
 
-// function that finds a Url
-// const findUrlByUserId = function(userId, database) {
-//   for (let key in database) {
-//     // if the userId inputed in the function matches the userID in the database, it will return the whole database.
-//     // Not what I want, I want it to return only the URL's associated with the ID
-//     //Just need to change value to database[key] but that will effect the rest of my code
-//     if (database[key].userID === userId) {
-//       return database[key]
-//     }
-//   }
-// }
-
-const databaseParser = function(database) {
-  for (let key in database) {
-    return database
-  }
-}
-// if the userId inputed in the function matches the userID in the database, it will return the whole database.
-    // Not what I want, I want it to return only the URL's associated with the ID
-    //Just need to change value to database[key] but that will effect the rest of my code
 
 // function for comparing logged in userID to the userID in the database
 const urlsForUser = function(id) {
@@ -102,8 +82,7 @@ app.get('/urls', (req, res) => {
         userEmail,
       }
 
-      console.log('newDatabase:', newDatabase)
-      console.log('templateVars:', templateVars)
+      
       res.render('urls_index', templateVars);
     
       
@@ -176,7 +155,7 @@ app.get('/login', (req, res) => {
   const templateVars = {
     userEmail: users[req.cookies['user_id']]
   };
-  
+  console.log(users)
   res.render('login', templateVars);
 });
 
@@ -218,11 +197,12 @@ app.get('/urls/new', (req, res) => {
 
   }
 
-  const userEmail = users[user_id].email;
+  const userEmail = users[user_id];
     const templateVars = {
       user_id: req.cookies['user_id'],
-      userEmail: userEmail
+      userEmail: userEmail.email
     };
+    console.log('templateVars:', templateVars)
 
     return res.render('urls_new', templateVars);
   
@@ -272,48 +252,99 @@ app.post('/logout', (req, res) => {
 // add a delete request
 app.post('/urls/:id/delete', (req, res) => {
   const urlID = req.params.id;
-  delete urlDatabase[urlID];
-  res.redirect('/urls');
+  const user_id = req.cookies['user_id'];
+
+  if (!urlDatabase[urlID]) {
+    return res.status(404).send('This URL does not exist')
+  }
+
+  if (urlDatabase[urlID].userID === user_id) {
+    delete urlDatabase[urlID];
+  } else {
+    return res.status(403).send('You are forbidden.')
+  }
+
+  return res.redirect('/urls');
+    
+  
+  
 });
-
-
-// shows all links sometimes but other times it doesn't -- Maybe gone
-
 
 // Update Request
 app.post('/urls/:id', (req, res) => {
-
+  const user_id = req.cookies['user_id']
   let urlID = req.params.id;
-  const newURL = req.body.newURL;
-
-  urlDatabase[urlID].longURL = newURL;
   
-  // without / throws an error that it cannot get and seeks out urls/:id/urls
+  if (!user_id) {
+    res.status(403).send('Please login')
+  }
+
+  if (users[user_id].id !== urlDatabase[urlID].userID) {
+    return res.status(403).send('You are forbidden.')
+  
+  }
+  
+  const newURL = req.body.newURL;
+  
+    urlDatabase[urlID].longURL = newURL;
+
   res.redirect(`/urls`);
+  
 });
 
 // add route for /urls/:id
 app.get('/urls/:id', (req, res) => {
   const urlID = req.params.id;
-  const originURL = urlDatabase[urlID].longURL;
-  const user_id = req.cookies['user_id'];
+  console.log('urlID:', urlID)
 
-  if (!user_id) {
-    res.send('Need to be logged in')
-    
+  const user_id = req.cookies['user_id'];
+  // non user tries to access short URL
+
+  if (!urlDatabase[urlID]) {
+    return res.status(404).send('This URL does not exist, please enter a valid URL')
   }
 
-  const userEmail = users[user_id].email;
+  if (!user_id) {
+    return res.status(403).send('Please login')  
+  }
+
+  // User other than the owner of the URL tries to access short URL
+  if (users[user_id].id !== urlDatabase[urlID].userID) {
+    return res.status(403).send('You are forbidden.')
+  }
+
+  
+
+  const originURL = urlDatabase[urlID];
+  
+  const newDatabase = urlsForUser(user_id);
+  console.log('newDatabase:', newDatabase)
+  
+ 
+    // console.log('something')
+  
+
+  
+  const userEmail = users[user_id];
 
   const templateVars = {
     user_id: user_id,
-    userEmail: userEmail,
+    userEmail: userEmail.email,
     id: urlID,
-    longURL: originURL,
+    originURL,
   };
   res.render('urls_show', templateVars);
 });
 
+app.use((req, res, next) => {
+  res.status(404).send("Sorry can't find that!")
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+// POST /urls/:id should return a relevant error message if id does not exist
+//POST /urls/:id/delete should return a relevant error message if id does not exist
+// fix header to display correct on create URL page
