@@ -5,10 +5,10 @@ Still need to implent CSS styling and some stretch features.
 
 ## Final Product
 
-!["URLs displayed when logged in"](../../Pictures/Screenshots/Screenshot%20from%202022-12-03%2018-17-41.png)
+!["URLs displayed when logged in"](![Alt text](Screenshot%20from%202022-12-03%2018-17-41.png))
 
 
-!["TinyApp login page"](../../Pictures/Screenshots/Screenshot%20from%202022-12-03%2018-17-24.png)
+!["TinyApp login page"](![Alt text](Screenshot%20from%202022-12-03%2018-17-24.png))
 
 ## Dependencies
 
