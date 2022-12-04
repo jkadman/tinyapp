@@ -228,6 +228,12 @@ app.get("/u/:id", (req, res) => {
 
   const urlID = req.params.id;
   const longURL = urlDatabase[urlID].longURL;
+  const user_id = req.session['user_id'];
+
+  // if user is not logged in
+  if (!user_id) {
+    res.status(403).send('Please login');
+  }
 
   //if the URL doesn't exist
   if (!longURL) {
